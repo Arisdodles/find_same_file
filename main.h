@@ -4,8 +4,11 @@
 #include <stdio.h>	//sprintf
 #include <string.h>	//memcmp,memset,strcmp
 #include <stdlib.h>	//calloc
+#include <limits.h> //PATH_MAX
+#include <errno.h>	//errno
+#define MY_LIST_NAME "all_file.txt"
 
-char (** list_dir (const char * dir_name));
+void list_dir (const char * dir_name);
 int compare_file(FILE *file_compared,FILE *file_checked);
 
 #endif
