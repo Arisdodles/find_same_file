@@ -1,7 +1,8 @@
 #include "main.h"
+
 int main(int argc,char *argv[]){
 	
-	FILE *fp,*fp2,*fp3;
+	FILE *fp;
 	char * filename1, * filename2;
 	
 	filename1 = (char *)calloc(PATH_MAX,sizeof(char));
@@ -30,56 +31,60 @@ int main(int argc,char *argv[]){
 	
 	fp = fopen(MY_LIST_NAME,"r");
 	
-	int counter = 0;
+	/*Compare files*/
+	
+	int counter = 0;	//count how many files have been checked
 	while(1){
 		int is_end = 0;
 		int i = 0;
 		fgets(filename1,PATH_MAX,fp);
+		
+		/*Jugde whether meet the end of file list*/
 		
 		for(i = 0; i < counter; i++){
 			if(fgets(filename1,PATH_MAX+1,fp) == NULL){
 				is_end = 1;
 			}
 		}
-		
-		if(filename1[strlen(filename1)-1] == '\n'){
-			filename1[strlen(filename1)-1] = 0;
-		}
-		
-//		printf("filename1: %s\n",filename1);
-		// printf("is_end: %d\n",is_end);
-		
+				
 		if(is_end){
 			break;
 		}
 		
-		if((fp2 = fopen(filename1,"r")) == NULL){
-			fprintf (stderr, "Cannot open directory '%s':\n%s\n",
-                 filename1, strerror (errno));
-		} else {
-//			printf("Openfile\n");
+		/*Remove the '\n' at the end of directory*/
+		
+		if(filename1[strlen(filename1)-1] == '\n'){
+			filename1[strlen(filename1)-1] = 0;
 		}
 		
 		while(fgets(filename2,PATH_MAX+1,fp) != NULL){
 			if(filename2[strlen(filename2)-1] == '\n'){
 				filename2[strlen(filename2)-1] = 0;
 			}
-//			printf("filename2: %s\n",filename2);
-			fp3 = fopen(filename2,"r");
-			if(compare_file(fp2,fp3)){
+		
+		/*Compare files*/
+		
+			if(compare_file(filename1,filename2)){
 				printf("%s is identical to %s\n\n",filename1,filename2);
 			}
-			fclose(fp3);
 		}
 		
 		counter++;
 		fseek(fp,0,SEEK_SET);
-		fclose(fp2);
-		
 	}
+	
+	/*Print how many files have been checked*/
+	
+	fprintf(stderr,"%d files have been checked",counter);
+	
+	/*Free memory*/
 	
 	free(filename1);
 	free(filename2);
+	
+	/*Close file*/
+	
 	fclose(fp);
+	
 	return 0;  
 }
