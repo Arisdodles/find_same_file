@@ -9,6 +9,6 @@
 #define MY_LIST_NAME "all_file.txt"
 
 void list_dir (const char * dir_name);
-int compare_file(FILE *file_compared,FILE *file_checked);
+int compare_file(char *file_compared,char *file_checked);
 
 #endif
