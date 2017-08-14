@@ -1,95 +1,52 @@
-//https://www.lemoda.net/c/recursive-directory/
-#include "main.h"
-#include <sys/types.h>
-/* "readdir" etc. are defined here. */
-#include <dirent.h>
-
-
-/* List the files in "dir_name". */
-
-void list_dir (const char * dir_name)
-{
-    DIR * d;
-	int i = 0;
+//https://stackoverflow.com/questions/6163611/compare-two-files
+#include "main.h" 
+/*Compare files function*/
+int compare_file(char *filename1,char *filename2){
+	int is_same = 1;
+	int N = 1024;
+	int counter = 0;
+	int ret_memcmp;
+	size_t ret_fread1,ret_fread2;
+	char *buf1 = (char*) calloc (1,N+1);
+	char *buf2 = (char*) calloc (1,N+1);
+	FILE *fp1, *fp2;
 	
-	/* Write found files into a txt file*/
-	FILE * fp;
-	fp = fopen(MY_LIST_NAME,"a+");
+	/*Open files*/
 	
-    /* Open the directory specified by "dir_name". */
-
-    d = opendir (dir_name);
-
-    /* Check it was opened. */
-	
-    if (! d) {
-        fprintf (stderr, "Cannot open directory '%s': %s\n",
-                 dir_name, strerror (errno));
-        exit (EXIT_FAILURE);
-    }
-	i = 0;
-    while (1) {
-        struct dirent * entry;
-        const char * d_name;
-
-        /* "Readdir" gets subsequent entries from "d". */
-		
-        entry = readdir (d);
-        if (! entry) {
-            /* There are no more entries in this directory, so break
-               out of the while loop. */
-            break;
-        }
-        d_name = entry->d_name;
-
-        /* Print the name of the file and directory. */
-
-		if(!(entry->d_type & DT_DIR)){
-			
-			fprintf(fp, "%s/%s\n", dir_name, d_name);
-			i++;
-			if(i>10000){
-				fprintf(stderr,"10000 files found. Reached the max.");
-				break;
-			}
-		}
-		
-
-		if (entry->d_type & DT_DIR) {
-
-			/* Check that the directory is not "d" or d's parent. */
-			
-			if (strcmp (d_name, "..") != 0 &&
-				strcmp (d_name, ".") != 0) {
-				int path_length;
-				char path[PATH_MAX];
-
-				path_length = snprintf (path, PATH_MAX,
-										"%s/%s", dir_name, d_name);
-//				printf ("%s\n", path);
-				if (path_length >= PATH_MAX) {
-					fprintf (stderr, "Path length has got too long.\n");
-					exit (EXIT_FAILURE);
-				}
-				/* Recursively call "list_dir" with the new path. */
-				list_dir (path);
-			}
-		}
+	if((fp1 = fopen(filename1,"r")) == NULL){
+		fprintf (stderr, "Cannot open directory '%s':\n%s\n",
+			filename1, strerror (errno));
 	}
+	if((fp2 = fopen(filename2,"r")) == NULL){
+		fprintf (stderr, "Cannot open directory '%s':\n%s\n",
+			filename2, strerror (errno));
+	}
+	
+	/*Compare files*/
+	
+	do {
+		ret_fread1 = fread(buf1,1,N,fp1);
+		ret_fread2 = fread(buf2,1,N,fp2);
+		ret_memcmp = memcmp(buf1,buf2,N);
+		fprintf(stderr,"%d KB compared\r",counter);
+		counter++;
+		if(ret_fread1 != ret_fread2 || ret_memcmp){
+			is_same = 0;
+			break;
+		}
+	}while(!feof(fp1) || !feof(fp2));
 	
 	/*Close stream*/
 	
-	if(fclose(fp)){
-		fprintf (stderr, "Could not close stream: %s\n", strerror (errno));
-        exit (EXIT_FAILURE);
-	}
+	fclose(fp1);
+	fclose(fp2);
 	
-    /* After going through all the entries, close the directory. */
+	/*Free memory*/
 	
-    if (closedir (d)) {
-        fprintf (stderr, "Could not close '%s': %s\n",
-                 dir_name, strerror (errno));
-        exit (EXIT_FAILURE);
-    }
-
+	free(buf1);
+	free(buf2);
+	
+	/*Return whether two files are same*/
+	
+	return is_same;
 }
